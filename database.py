@@ -1,5 +1,4 @@
 import sqlite3
-from datetime import datetime
 
 DB_NAME = "database.db"
 
@@ -7,7 +6,7 @@ def init_db():
     conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
     
-    # Таблица пользователей
+    # Таблица пользователей (Добавлено поле role)
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY,
@@ -15,10 +14,11 @@ def init_db():
         username TEXT,
         balance REAL DEFAULT 0.0,
         invited_by INTEGER,
-        join_date TEXT
+        join_date TEXT,
+        role TEXT DEFAULT 'user'
     )""")
     
-    # Таблица товаров (теперь пустая по дефолту)
+    # Таблица товаров
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS products (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -46,5 +46,4 @@ def get_db_connection():
     conn.row_factory = sqlite3.Row
     return conn
 
-# Инициализируем при импорте
 init_db()
