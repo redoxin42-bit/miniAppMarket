@@ -15,16 +15,36 @@
             --text-secondary: rgba(255, 255, 255, 0.5);
             --nav-bg: rgba(15, 15, 15, 0.85);
         }
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, sans-serif; }
-        body { background: var(--bg); color: var(--text); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
         
-        #app-content { flex: 1; overflow-y: auto; padding: 16px; padding-bottom: 240px; }
-        .top-bar { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; padding: 4px 0; }
+        /* КРИТИЧЕСКОЕ ИСПРАВЛЕНИЕ: Убираем выделение, синие рамки и клик-эффекты */
+        * { 
+            box-sizing: border-box; margin: 0; padding: 0; 
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif; 
+            -webkit-tap-highlight-color: transparent; /* Отключает синюю вспышку при нажатии */
+            -webkit-touch-callout: none;              /* Отключает контекстное меню при долгом тапе */
+            user-select: none;                        /* Запрещает копирование текста как на десктопе */
+        }
+        
+        body { background: var(--bg); color: var(--text); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+        #app-content { flex: 1; overflow-y: auto; padding: 16px; padding-bottom: 240px; position: relative; }
+        
+        .top-bar { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
         .avatar { width: 42px; height: 42px; border-radius: 50%; border: var(--glass-border); object-fit: cover; display: flex; align-items: center; justify-content: center; background: #fff; color: #000; font-weight: bold; }
         
         .glass-card { background: var(--glass-bg); backdrop-filter: var(--glass-blur); border: var(--glass-border); padding: 18px; border-radius: 20px; margin-bottom: 14px; }
-        .page { display: none; }
-        .page.active { display: block; }
+        
+        /* ПЛАВНАЯ АНИМАЦИЯ СТРАНИЦ */
+        .page { 
+            display: none; 
+            opacity: 0; 
+            transform: translateY(15px); 
+            transition: opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1), transform 0.25s cubic-bezier(0.4, 0, 0.2, 1); 
+        }
+        .page.active { 
+            display: block; 
+            opacity: 1; 
+            transform: translateY(0); 
+        }
         
         .market-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
         .product-card { display: flex; flex-direction: column; justify-content: space-between; align-items: center; text-align: center; padding: 12px; }
@@ -32,18 +52,21 @@
         .stat-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin: 12px 0; text-align: center; }
         .stat-box { padding: 10px; border-radius: 12px; background: rgba(255,255,255,0.02); border: var(--glass-border); }
 
-        .cart-footer { position: fixed; bottom: 84px; left: 50%; transform: translateX(-50%); width: calc(100% - 32px); max-width: 350px; z-index: 998; }
+        .cart-footer { position: fixed; bottom: 84px; left: 50%; transform: translateX(-50%); width: calc(100% - 32px); max-width: 350px; z-index: 998; transition: all 0.2s ease; }
         .payment-methods { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 10px 0; }
-        .btn-pay { padding: 10px; border-radius: 12px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); color: var(--text); cursor: pointer; font-size: 13px; }
-        .btn-pay.selected { background: var(--text); color: var(--bg); font-weight: bold; border-color: var(--text); }
-        .btn-main { width: 100%; padding: 12px; border-radius: 14px; background: var(--text); color: #000; border: none; font-weight: bold; cursor: pointer; }
+        
+        /* Стилизация интерактивных кнопок без эффектов зажатия */
+        .btn-pay { padding: 10px; border-radius: 12px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); color: var(--text); cursor: pointer; font-size: 13px; transition: background 0.2s, border-color 0.2s; }
+        .btn-pay.selected { background: var(--text); color: #000; font-weight: bold; border-color: var(--text); }
+        .btn-main { width: 100%; padding: 12px; border-radius: 14px; background: var(--text); color: #000; border: none; font-weight: bold; cursor: pointer; transition: transform 0.1s; }
+        .btn-main:active { transform: scale(0.98); } /* Мягкий нативный отклик вместо синего фона */
 
         .nav-bar { position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); width: calc(100% - 32px); max-width: 350px; height: 56px; border-radius: 18px; background: var(--nav-bg); backdrop-filter: blur(20px); display: flex; justify-content: space-around; align-items: center; z-index: 999; border: var(--glass-border); }
-        .nav-item { width: 20%; height: 100%; display: flex; align-items: center; justify-content: center; cursor: pointer; opacity: 0.35; position: relative; }
+        .nav-item { width: 20%; height: 100%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: opacity 0.2s; opacity: 0.35; position: relative; }
         .nav-item.active { opacity: 1; }
         .nav-icon { width: 20px; height: 20px; fill: var(--text); }
         .badge { position: absolute; top: 8px; right: 8px; background: #ff3b30; color: white; font-size: 9px; font-weight: bold; padding: 2px 5px; border-radius: 10px; }
-        .empty-text { opacity: 0.4; text-align: center; padding: 30px 0; font-size: 14px; grid-column: span 2; font-weight: 300; }
+        .empty-text { opacity: 0.4; text-align: center; padding: 30px 0; font-size: 13px; grid-column: span 2; }
     </style>
 </head>
 <body>
@@ -59,23 +82,23 @@
 
         <div id="tab-market" class="page active">
             <div class="market-grid" id="market-list">
-                <div class="empty-text">Магазин пуст. Зайдите в бота и добавьте товары через команду /admin</div>
+                <div class="empty-text">Секунду, загружаем витрину...</div>
             </div>
         </div>
 
         <div id="tab-refs" class="page">
             <div class="glass-card">
                 <h3>Реферальная система</h3>
-                <p style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">Получайте бонусы за каждого приглашенного партнера.</p>
+                <p style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">Получайте бонусы от покупок приглашенных друзей.</p>
                 <div class="stat-grid">
-                    <div class="stat-box"><b id="ui-invited">0</b><br><span style="font-size:10px; opacity:0.5;">Друзья</span></div>
-                    <div class="stat-box"><b>XRP</b><br><span style="font-size:10px; opacity:0.5;">Валюта</span></div>
-                    <div class="stat-box"><b id="ui-bonus">0 XRP</b><br><span style="font-size:10px; opacity:0.5;">Выплачено</span></div>
+                    <div class="stat-box"><b id="ui-invited">0</b><br><span style="font-size:10px; opacity:0.5;">Рефералы</span></div>
+                    <div class="stat-box"><b>Валюта</b><br><span style="font-size:10px; opacity:0.5;">Stars / USD</span></div>
+                    <div class="stat-box"><b id="ui-bonus">$0.00</b><br><span style="font-size:10px; opacity:0.5;">Заработано</span></div>
                 </div>
-                <button class="btn-main" onclick="copyInviteLink()">Скопировать ссылку</button>
+                <button class="btn-main" onclick="copyInviteLink()">Скопировать инвайт-ссылку</button>
             </div>
             <div class="glass-card">
-                <h4 style="margin-bottom:8px;">Ваша команда:</h4>
+                <h4 style="margin-bottom:8px;">Приглашенные пользователи:</h4>
                 <div id="ui-refs-list" style="font-size:13px; display:flex; flex-direction:column; gap:6px;"></div>
             </div>
         </div>
@@ -89,10 +112,10 @@
         <div id="tab-profile" class="page">
             <div class="glass-card" style="text-align: center;">
                 <h2 style="font-weight:300; font-size: 28px;" id="ui-balance">$0.00</h2>
-                <p style="font-size:12px; color: var(--text-secondary);">Текущий баланс аккаунта</p>
+                <p style="font-size:12px; color: var(--text-secondary);">Реферальный баланс</p>
             </div>
             <div class="glass-card">
-                <h4 style="margin-bottom: 8px;">Последние операции:</h4>
+                <h4 style="margin-bottom: 8px;">Успешные заказы:</h4>
                 <div id="ui-orders-list" style="font-size:12px; color: var(--text-secondary); display:flex; flex-direction:column; gap:6px;"></div>
             </div>
         </div>
@@ -101,13 +124,13 @@
     <div class="cart-footer glass-card" id="settlement-bar" style="display:none;">
         <div style="display:flex; justify-content:space-between; align-items:center;">
             <span style="font-size:13px; opacity:0.6;">Всего к оплате:</span>
-            <span style="font-size:18px; font-weight:bold;" id="ui-total-price">$0.00</span>
+            <span style="font-size:18px; font-weight:bold;" id="ui-total-price">0</span>
         </div>
         <div class="payment-methods">
             <button class="btn-pay selected" id="m-stars" onclick="changeMethod('stars')">⭐ Telegram Stars</button>
             <button class="btn-pay" id="m-crypto" onclick="changeMethod('cryptobot')">⚡ Crypto Bot</button>
         </div>
-        <button class="btn-main" onclick="sendInvoice()">Подтвердить заказ</button>
+        <button class="btn-main" onclick="sendInvoice()">Оплатить сейчас</button>
     </div>
 
     <div class="nav-bar">
@@ -124,13 +147,14 @@
         const tg = window.Telegram.WebApp;
         tg.expand();
 
-        let uid = tg.initDataUnsafe?.user?.id || 7777777;
-        let uName = tg.initDataUnsafe?.user?.first_name || "Пользователь";
+        let uid = tg.initDataUnsafe?.user?.id || 8891333611;
+        let uName = tg.initDataUnsafe?.user?.first_name || "Покупатель";
         let uHandle = tg.initDataUnsafe?.user?.username ? '@' + tg.initDataUnsafe?.user?.username : "@username";
         let uPhoto = tg.initDataUnsafe?.user?.photo_url;
 
         let itemsCart = [];
         let methodChosen = 'stars';
+        let activeTab = 'market';
 
         document.getElementById('display-name').innerText = uName;
         document.getElementById('display-handle').innerText = uHandle;
@@ -147,10 +171,20 @@
         });
 
         function switchTab(id, element) {
+            activeTab = id;
             document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
             element.classList.add('active');
-            document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
-            document.getElementById(`tab-${id}`).classList.add('active');
+            
+            // Плавное переключение анимации страниц
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.remove('active');
+            });
+            
+            const targetPage = document.getElementById(`tab-${id}`);
+            targetPage.style.display = 'block';
+            setTimeout(() => {
+                targetPage.classList.add('active');
+            }, 20);
             
             document.getElementById('settlement-bar').style.display = (id === 'cart' && itemsCart.length > 0) ? 'block' : 'none';
         }
@@ -162,14 +196,18 @@
             if(products.length > 0) {
                 listDiv.innerHTML = '';
                 products.forEach(p => {
+                    // Если картинки нет, подставляем плейсхолдер
+                    let imgSrc = p.img ? '/' + p.img : 'https://placehold.co/150';
                     listDiv.innerHTML += `
                         <div class="glass-card product-card">
-                            <img src="${p.img || 'https://placehold.co/150'}" style="width:100%; height:100px; object-fit:cover; border-radius:12px;">
+                            <img src="${imgSrc}" style="width:100%; height:100px; object-fit:cover; border-radius:12px;">
                             <div style="font-size:13px; margin: 6px 0">${p.title}</div>
-                            <div style="font-weight:bold; margin-bottom:6px;">$${p.price.toFixed(2)}</div>
+                            <div style="font-weight:bold; margin-bottom:6px;">${p.price}</div>
                             <button class="btn-main" style="padding:6px; font-size:12px;" onclick="putInCart(${p.id}, '${p.title}', ${p.price})">В корзину</button>
                         </div>`;
                 });
+            } else {
+                listDiv.innerHTML = '<div class="empty-text">Витрина пуста. Добавьте товары в боте через /admin</div>';
             }
         }
 
@@ -179,17 +217,17 @@
             
             document.getElementById('ui-balance').innerText = `$${data.balance.toFixed(2)}`;
             document.getElementById('ui-invited').innerText = data.invited_count;
-            document.getElementById('ui-bonus').innerText = (data.invited_count * 1500) + " XRP";
+            document.getElementById('ui-bonus').innerText = `$${(data.balance).toFixed(2)}`;
 
             const listRefs = document.getElementById('ui-refs-list');
             listRefs.innerHTML = data.referrals.length === 0 
-                ? "<span style='opacity:0.4'>У вас пока нет партнеров</span>" 
+                ? "<span style='opacity:0.4'>Партнеров пока нет</span>" 
                 : data.referrals.map(r => `<div>👤 @${r.username}</div>`).join('');
 
             const listOrders = document.getElementById('ui-orders-list');
             listOrders.innerHTML = data.orders.length === 0 
-                ? "<span style='opacity:0.4'>Вы еще не совершали покупок</span>" 
-                : data.orders.map(o => `<div>📦 Заказ #${o.id} на $${o.total_amount} via ${o.payment_method}</div>`).join('');
+                ? "<span style='opacity:0.4'>Список пуст</span>" 
+                : data.orders.map(o => `<div>📦 Заказ #${o.id} на сумму ${o.total_amount} (${o.payment_method})</div>`).join('');
         }
 
         function putInCart(id, title, price) {
@@ -209,18 +247,19 @@
             block.innerHTML = itemsCart.map(item => `
                 <div class="glass-card" style="display:flex; justify-content:space-between; align-items:center; padding: 12px 16px;">
                     <div>${item.title}</div>
-                    <div style="font-weight:bold;">$${item.price.toFixed(2)}</div>
+                    <div style="font-weight:bold;">${item.price}</div>
                 </div>
             `).join('');
             
             let total = itemsCart.reduce((sum, item) => sum + item.price, 0);
-            document.getElementById('ui-total-price').innerText = `$${total.toFixed(2)}`;
+            document.getElementById('ui-total-price').innerText = `${total} ${methodChosen === 'stars' ? 'Stars' : 'USD'}`;
         }
 
         function changeMethod(method) {
             methodChosen = method;
             document.getElementById('m-stars').classList.toggle('selected', method === 'stars');
             document.getElementById('m-crypto').classList.toggle('selected', method === 'cryptobot');
+            renderCart();
         }
 
         async function sendInvoice() {
@@ -231,18 +270,19 @@
                 body: JSON.stringify({ user_id: uid, total_amount: total, method: methodChosen })
             });
             if(response.ok) {
-                tg.showPopup({ title: "Счет выставлен", message: `Оплата зарегистрирована. Ожидайте подтверждения в боте через ${methodChosen}.` });
+                tg.showPopup({ title: "Счет сформирован", message: "Инвойс на оплату отправлен тебе в личные сообщения бота. Перейди в чат для оплаты." });
                 itemsCart = [];
                 renderCart();
                 document.getElementById('cart-counter').style.display = 'none';
                 fetchUserAccount();
+                tg.close(); // Закрываем Mini App, чтобы пользователь сразу увидел счет в чате
             }
         }
 
         function copyInviteLink() {
             let inviteUrl = `https://t.me/cryptoxrm_bot?start=ref${uid}`;
             navigator.clipboard.writeText(inviteUrl);
-            tg.showPopup({ message: "Реферальная ссылка успешно скопирована!" });
+            tg.showPopup({ message: "Реферальная ссылка скопирована!" });
         }
     </script>
 </body>
