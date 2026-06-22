@@ -6,7 +6,7 @@ def init_db():
     conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
     
-    # Таблица пользователей (Добавлено поле role)
+    # Таблица пользователей
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY,
@@ -18,7 +18,7 @@ def init_db():
         role TEXT DEFAULT 'user'
     )""")
     
-    # Таблица товаров
+    # Таблица товаров (img будет хранить путь к локальному файлу)
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS products (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -27,13 +27,14 @@ def init_db():
         img TEXT
     )""")
     
-    # Таблица заказов
+    # Таблица заказов (с отслеживанием статуса)
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS orders (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        id TEXT PRIMARY KEY,
         user_id INTEGER,
         total_amount REAL,
         payment_method TEXT,
+        status TEXT DEFAULT 'pending',
         timestamp TEXT,
         FOREIGN KEY (user_id) REFERENCES users(id)
     )""")
