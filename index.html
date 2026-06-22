@@ -7,266 +7,242 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
-            --bg: #000000;
-            --glass-bg: rgba(255, 255, 255, 0.04);
-            --glass-blur: blur(36px) saturate(200%);
-            --glass-border: 1px solid rgba(255, 255, 255, 0.08);
-            --glass-shadow: 0 4px 40px rgba(0,0,0,0.6);
+            --bg: #0a0a0a;
+            --glass-bg: rgba(255, 255, 255, 0.03);
+            --glass-blur: blur(24px);
+            --glass-border: 1px solid rgba(255, 255, 255, 0.06);
             --text: #ffffff;
-            --text-secondary: rgba(255, 255, 255, 0.45);
-            --nav-bg: rgba(0, 0, 0, 0.70);
-            --nav-blur: blur(40px);
-        }
-        [data-theme="light"] {
-            --bg: #ffffff;
-            --glass-bg: rgba(0, 0, 0, 0.04);
-            --glass-blur: blur(32px);
-            --glass-border: 1px solid rgba(0, 0, 0, 0.08);
-            --glass-shadow: 0 4px 32px rgba(0,0,0,0.05);
-            --text: #000000;
-            --text-secondary: rgba(0, 0, 0, 0.45);
-            --nav-bg: rgba(255, 255, 255, 0.70);
+            --text-secondary: rgba(255, 255, 255, 0.5);
+            --nav-bg: rgba(15, 15, 15, 0.85);
         }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, sans-serif; }
-        body { background: var(--bg); color: var(--text); overflow-x: hidden; height: 100vh; }
+        body { background: var(--bg); color: var(--text); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
         
-        #app-content { padding: 16px; padding-bottom: 240px; }
-        .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
-        .user-info { display: flex; align-items: center; gap: 12px; }
-        .avatar { width: 44px; height: 44px; border-radius: 50%; background: #fff; border: var(--glass-border); object-fit: cover; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #000; }
+        #app-content { flex: 1; overflow-y: auto; padding: 16px; padding-bottom: 240px; }
+        .top-bar { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; padding: 4px 0; }
+        .avatar { width: 42px; height: 42px; border-radius: 50%; border: var(--glass-border); object-fit: cover; display: flex; align-items: center; justify-content: center; background: #fff; color: #000; font-weight: bold; }
         
-        .glass-card { background: var(--glass-bg); backdrop-filter: var(--glass-blur); border: var(--glass-border); box-shadow: var(--glass-shadow); padding: 20px; border-radius: 24px; margin-bottom: 16px; }
-        
+        .glass-card { background: var(--glass-bg); backdrop-filter: var(--glass-blur); border: var(--glass-border); padding: 18px; border-radius: 20px; margin-bottom: 14px; }
         .page { display: none; }
         .page.active { display: block; }
         
-        .market-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-        .product-card { text-align: center; display: flex; flex-direction: column; justify-content: space-between; }
+        .market-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .product-card { display: flex; flex-direction: column; justify-content: space-between; align-items: center; text-align: center; padding: 12px; }
         
-        .stat-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin: 14px 0; text-align: center; }
-        .stat-box { padding: 12px; border-radius: 14px; background: rgba(255,255,255,0.02); }
+        .stat-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin: 12px 0; text-align: center; }
+        .stat-box { padding: 10px; border-radius: 12px; background: rgba(255,255,255,0.02); border: var(--glass-border); }
 
-        .cart-footer { position: fixed; bottom: 85px; left: 50%; transform: translateX(-50%); width: calc(100% - 32px); max-width: 340px; z-index: 998; }
+        .cart-footer { position: fixed; bottom: 84px; left: 50%; transform: translateX(-50%); width: calc(100% - 32px); max-width: 350px; z-index: 998; }
         .payment-methods { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 10px 0; }
-        .btn-pay { padding: 10px; border-radius: 12px; background: none; border: 1px solid rgba(255,255,255,0.1); color: var(--text); cursor: pointer; }
-        .btn-pay.selected { background: var(--text); color: var(--bg); font-weight: bold; }
-        .btn-main { width: 100%; padding: 12px; border-radius: 14px; background: var(--text); color: var(--bg); border: none; font-weight: bold; cursor: pointer; margin-top: 5px; }
+        .btn-pay { padding: 10px; border-radius: 12px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); color: var(--text); cursor: pointer; font-size: 13px; }
+        .btn-pay.selected { background: var(--text); color: var(--bg); font-weight: bold; border-color: var(--text); }
+        .btn-main { width: 100%; padding: 12px; border-radius: 14px; background: var(--text); color: #000; border: none; font-weight: bold; cursor: pointer; }
 
-        .nav-bar { position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); width: calc(100% - 32px); max-width: 340px; height: 60px; border-radius: 20px; background: var(--nav-bg); backdrop-filter: var(--nav-blur); display: flex; justify-content: space-around; align-items: center; z-index: 999; border: var(--glass-border); }
-        .nav-item { width: 50px; height: 100%; display: flex; align-items: center; justify-content: center; cursor: pointer; opacity: 0.4; position: relative; }
+        .nav-bar { position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); width: calc(100% - 32px); max-width: 350px; height: 56px; border-radius: 18px; background: var(--nav-bg); backdrop-filter: blur(20px); display: flex; justify-content: space-around; align-items: center; z-index: 999; border: var(--glass-border); }
+        .nav-item { width: 20%; height: 100%; display: flex; align-items: center; justify-content: center; cursor: pointer; opacity: 0.35; position: relative; }
         .nav-item.active { opacity: 1; }
-        .nav-icon { width: 22px; height: 22px; fill: var(--text); }
-        .badge { position: absolute; top: 10px; right: 4px; background: red; color: white; font-size: 9px; padding: 2px 5px; border-radius: 50%; }
-        .empty-text { opacity: 0.4; text-align: center; padding: 40px 0; font-weight: 300; width: 100%; grid-column: span 2; }
+        .nav-icon { width: 20px; height: 20px; fill: var(--text); }
+        .badge { position: absolute; top: 8px; right: 8px; background: #ff3b30; color: white; font-size: 9px; font-weight: bold; padding: 2px 5px; border-radius: 10px; }
+        .empty-text { opacity: 0.4; text-align: center; padding: 30px 0; font-size: 14px; grid-column: span 2; font-weight: 300; }
     </style>
 </head>
 <body>
 
     <div id="app-content">
         <div class="top-bar">
-            <div class="user-info">
-                <div id="avatar-container">
-                    <div class="avatar" id="txt-avatar">U</div>
-                </div>
-                <div>
-                    <h4 id="user-display-name">Загрузка...</h4>
-                    <p style="font-size: 12px; opacity: 0.5;" id="user-handle">@username</p>
-                </div>
+            <div id="avatar-slot"><div class="avatar" id="fallback-av">U</div></div>
+            <div>
+                <h4 id="display-name" style="font-weight: 600; font-size: 15px;">Загрузка...</h4>
+                <p id="display-handle" style="font-size: 12px; color: var(--text-secondary);">@username</p>
             </div>
         </div>
 
-        <div id="page-market" class="page active">
-            <div class="market-grid" id="market-products">
-                <div class="empty-text">Витрина пуста. Перейдите в бота и добавьте через /admin.</div>
+        <div id="tab-market" class="page active">
+            <div class="market-grid" id="market-list">
+                <div class="empty-text">Магазин пуст. Зайдите в бота и добавьте товары через команду /admin</div>
             </div>
         </div>
 
-        <div id="page-refs" class="page">
+        <div id="tab-refs" class="page">
             <div class="glass-card">
-                <h3>Реферальная программа</h3>
-                <p style="font-size:13px; opacity:0.6; margin-top:6px;">Приглашайте друзей и получайте бонусы за их покупки.</p>
+                <h3>Реферальная система</h3>
+                <p style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">Получайте бонусы за каждого приглашенного партнера.</p>
                 <div class="stat-grid">
-                    <div class="stat-box"><b id="ref-count">0</b><br><span style="font-size:10px; opacity:0.5;">Приглашено</span></div>
+                    <div class="stat-box"><b id="ui-invited">0</b><br><span style="font-size:10px; opacity:0.5;">Друзья</span></div>
                     <div class="stat-box"><b>XRP</b><br><span style="font-size:10px; opacity:0.5;">Валюта</span></div>
-                    <div class="stat-box"><b id="ref-bonus">0</b><br><span style="font-size:10px; opacity:0.5;">Бонусы</span></div>
+                    <div class="stat-box"><b id="ui-bonus">0 XRP</b><br><span style="font-size:10px; opacity:0.5;">Выплачено</span></div>
                 </div>
-                <button class="btn-main" onclick="copyRefLink()">Скопировать ссылку</button>
+                <button class="btn-main" onclick="copyInviteLink()">Скопировать ссылку</button>
             </div>
             <div class="glass-card">
-                <h4>Ваши рефералы:</h4>
-                <div id="referrals-list" style="margin-top:10px; font-size:14px;"></div>
+                <h4 style="margin-bottom:8px;">Ваша команда:</h4>
+                <div id="ui-refs-list" style="font-size:13px; display:flex; flex-direction:column; gap:6px;"></div>
             </div>
         </div>
 
-        <div id="page-cart" class="page">
-            <div id="cart-items-list">
-                <div class="empty-text">В корзине пусто</div>
+        <div id="tab-cart" class="page">
+            <div id="ui-cart-list">
+                <div class="empty-text">Внутри корзины ничего нет</div>
             </div>
         </div>
 
-        <div id="page-profile" class="page">
+        <div id="tab-profile" class="page">
             <div class="glass-card" style="text-align: center;">
-                <h2 style="font-weight:300;" id="prof-balance">0.00 USD</h2>
-                <p style="font-size:12px; opacity:0.5;">Личный баланс</p>
+                <h2 style="font-weight:300; font-size: 28px;" id="ui-balance">$0.00</h2>
+                <p style="font-size:12px; color: var(--text-secondary);">Текущий баланс аккаунта</p>
             </div>
             <div class="glass-card">
-                <h4>История операций:</h4>
-                <div id="orders-list" style="margin-top:10px; font-size:13px; opacity:0.7;"></div>
+                <h4 style="margin-bottom: 8px;">Последние операции:</h4>
+                <div id="ui-orders-list" style="font-size:12px; color: var(--text-secondary); display:flex; flex-direction:column; gap:6px;"></div>
             </div>
         </div>
     </div>
 
-    <div class="cart-footer glass-card" id="cart-settlement" style="display:none;">
-        <div style="display:flex; justify-content:between; align-items:center;">
-            <span style="font-size:13px; opacity:0.6;">Итого:</span>
-            <span style="font-size:18px; font-weight:bold; margin-left:auto;" id="total-price-lbl">$0</span>
+    <div class="cart-footer glass-card" id="settlement-bar" style="display:none;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-size:13px; opacity:0.6;">Всего к оплате:</span>
+            <span style="font-size:18px; font-weight:bold;" id="ui-total-price">$0.00</span>
         </div>
         <div class="payment-methods">
-            <button class="btn-pay selected" id="p-stars" onclick="setMethod('stars')">⭐ Stars</button>
-            <button class="btn-pay" id="p-crypto" onclick="setMethod('cryptobot')">⚡ CryptoBot</button>
+            <button class="btn-pay selected" id="m-stars" onclick="changeMethod('stars')">⭐ Telegram Stars</button>
+            <button class="btn-pay" id="m-crypto" onclick="changeMethod('cryptobot')">⚡ Crypto Bot</button>
         </div>
-        <button class="btn-main" onclick="payNow()">Оформить заказ</button>
+        <button class="btn-main" onclick="sendInvoice()">Подтвердить заказ</button>
     </div>
 
     <div class="nav-bar">
-        <div class="nav-item active" onclick="tab('market', this)"><svg class="nav-icon" viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg></div>
-        <div class="nav-item" onclick="tab('refs', this)"><svg class="nav-icon" viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 1.34 5 3s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg></div>
-        <div class="nav-item" onclick="tab('cart', this)">
+        <div class="nav-item active" onclick="switchTab('market', this)"><svg class="nav-icon" viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg></div>
+        <div class="nav-item" onclick="switchTab('refs', this)"><svg class="nav-icon" viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 1.34 5 3s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg></div>
+        <div class="nav-item" onclick="switchTab('cart', this)">
             <svg class="nav-icon" viewBox="0 0 24 24"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zm10 0c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2zm-8.9-5.1l1.1-2h7.45c.75 0 1.41-.41 1.75-1.03L21.42 4.5c.17-.3.08-.67-.22-.84-.1-.05-.21-.08-.32-.08H5.21l-.94-2H1v2h2l3.6 7.59-1.35 2.44C4.52 15.37 5.48 17 7 17h12v-2H7.42l1.1-2z"/></svg>
-            <div class="badge" id="cart-badge" style="display:none;">0</div>
+            <div class="badge" id="cart-counter" style="display:none;">0</div>
         </div>
-        <div class="nav-item" onclick="tab('profile', this)"><svg class="nav-icon" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5-4-8-4z"/></svg></div>
+        <div class="nav-item" onclick="switchTab('profile', this)"><svg class="nav-icon" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5-4-8-4z"/></svg></div>
     </div>
 
     <script>
         const tg = window.Telegram.WebApp;
         tg.expand();
 
-        // Извлекаем реальные данные из Telegram WebApp API
-        let userId = tg.initDataUnsafe?.user?.id || 999999;
-        let firstName = tg.initDataUnsafe?.user?.first_name || "Покупатель";
-        let userHandle = tg.initDataUnsafe?.user?.username ? '@' + tg.initDataUnsafe?.user?.username : "@unknown";
-        let photoUrl = tg.initDataUnsafe?.user?.photo_url;
+        let uid = tg.initDataUnsafe?.user?.id || 7777777;
+        let uName = tg.initDataUnsafe?.user?.first_name || "Пользователь";
+        let uHandle = tg.initDataUnsafe?.user?.username ? '@' + tg.initDataUnsafe?.user?.username : "@username";
+        let uPhoto = tg.initDataUnsafe?.user?.photo_url;
 
-        let cart = [];
-        let payMethod = 'stars';
+        let itemsCart = [];
+        let methodChosen = 'stars';
 
-        // Инициализация интерфейса реальными данными
-        document.getElementById('user-display-name').innerText = firstName;
-        document.getElementById('user-handle').innerText = userHandle;
+        document.getElementById('display-name').innerText = uName;
+        document.getElementById('display-handle').innerText = uHandle;
         
-        if(photoUrl) {
-            document.getElementById('avatar-container').innerHTML = `<img src="${photoUrl}" class="avatar">`;
+        if (uPhoto) {
+            document.getElementById('avatar-slot').innerHTML = `<img src="${uPhoto}" class="avatar">`;
         } else {
-            document.getElementById('txt-avatar').innerText = firstName.charAt(0).toUpperCase();
+            document.getElementById('fallback-av').innerText = uName.charAt(0).toUpperCase();
         }
 
         window.addEventListener('DOMContentLoaded', () => {
-            loadMarket();
-            loadUserData();
+            fetchMarket();
+            fetchUserAccount();
         });
 
-        function tab(id, el) {
-            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-            el.classList.add('active');
-            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-            document.getElementById(`page-${id}`).classList.add('active');
+        function switchTab(id, element) {
+            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+            element.classList.add('active');
+            document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
+            document.getElementById(`tab-${id}`).classList.add('active');
             
-            document.getElementById('cart-settlement').style.display = (id === 'cart' && cart.length > 0) ? 'block' : 'none';
+            document.getElementById('settlement-bar').style.display = (id === 'cart' && itemsCart.length > 0) ? 'block' : 'none';
         }
 
-        async function loadMarket() {
-            const res = await fetch('/api/products');
-            const data = await res.json();
-            const container = document.getElementById('market-products');
-            if(data.length > 0) {
-                container.innerHTML = '';
-                data.forEach(p => {
-                    container.innerHTML += `
+        async function fetchMarket() {
+            const response = await fetch('/api/products');
+            const products = await response.json();
+            const listDiv = document.getElementById('market-list');
+            if(products.length > 0) {
+                listDiv.innerHTML = '';
+                products.forEach(p => {
+                    listDiv.innerHTML += `
                         <div class="glass-card product-card">
-                            <img src="${p.img || 'https://placehold.co/150'}" style="width:100%; border-radius:12px; height:110px; object-fit:cover;">
-                            <div style="margin: 8px 0 4px 0; font-size:14px;">${p.title}</div>
-                            <div style="font-weight:bold; margin-bottom:8px;">$${p.price}</div>
-                            <button class="btn-main" style="padding:6px; font-size:12px;" onclick="addToCart(${p.id}, '${p.title}', ${p.price})">В корзину</button>
+                            <img src="${p.img || 'https://placehold.co/150'}" style="width:100%; height:100px; object-fit:cover; border-radius:12px;">
+                            <div style="font-size:13px; margin: 6px 0">${p.title}</div>
+                            <div style="font-weight:bold; margin-bottom:6px;">$${p.price.toFixed(2)}</div>
+                            <button class="btn-main" style="padding:6px; font-size:12px;" onclick="putInCart(${p.id}, '${p.title}', ${p.price})">В корзину</button>
                         </div>`;
                 });
             }
         }
 
-        async function loadUserData() {
-            const res = await fetch(`/api/user/${userId}`);
-            const data = await res.json();
+        async function fetchUserAccount() {
+            const response = await fetch(`/api/user/${uid}`);
+            const data = await response.json();
             
-            document.getElementById('prof-balance').innerText = `$${data.balance.toFixed(2)}`;
-            document.getElementById('ref-count').innerText = data.invited_count;
-            document.getElementById('ref-bonus').innerText = (data.invited_count * 1500) + " XRP"; // старый баланс
+            document.getElementById('ui-balance').innerText = `$${data.balance.toFixed(2)}`;
+            document.getElementById('ui-invited').innerText = data.invited_count;
+            document.getElementById('ui-bonus').innerText = (data.invited_count * 1500) + " XRP";
 
-            // Рендерим рефералов
-            const refList = document.getElementById('referrals-list');
-            if(data.referrals.length === 0) refList.innerHTML = "<span style='opacity:0.4'>Нет приглашенных</span>";
-            else {
-                refList.innerHTML = data.referrals.map(r => `<div style='margin-bottom:6px;'>👤 @${r.username}</div>`).join('');
-            }
+            const listRefs = document.getElementById('ui-refs-list');
+            listRefs.innerHTML = data.referrals.length === 0 
+                ? "<span style='opacity:0.4'>У вас пока нет партнеров</span>" 
+                : data.referrals.map(r => `<div>👤 @${r.username}</div>`).join('');
 
-            // Рендерим историю
-            const ordList = document.getElementById('orders-list');
-            if(data.orders.length === 0) ordList.innerHTML = "<span style='opacity:0.4'>История покупок пуста</span>";
-            else {
-                ordList.innerHTML = data.orders.map(o => `<div>📦 Заказ #${o.id} на сумму $${o.total_amount} (${o.payment_method})</div>`).join('');
-            }
+            const listOrders = document.getElementById('ui-orders-list');
+            listOrders.innerHTML = data.orders.length === 0 
+                ? "<span style='opacity:0.4'>Вы еще не совершали покупок</span>" 
+                : data.orders.map(o => `<div>📦 Заказ #${o.id} на $${o.total_amount} via ${o.payment_method}</div>`).join('');
         }
 
-        function addToCart(id, title, price) {
-            cart.push({id, title, price});
-            document.getElementById('cart-badge').innerText = cart.length;
-            document.getElementById('cart-badge').style.display = 'block';
-            updateCartUI();
+        function putInCart(id, title, price) {
+            itemsCart.push({id, title, price});
+            document.getElementById('cart-counter').innerText = itemsCart.length;
+            document.getElementById('cart-counter').style.display = 'block';
+            renderCart();
         }
 
-        function updateCartUI() {
-            const list = document.getElementById('cart-items-list');
-            if(cart.length === 0) {
-                list.innerHTML = '<div class="empty-text">В корзине пусто</div>';
-                document.getElementById('cart-settlement').style.display = 'none';
+        function renderCart() {
+            const block = document.getElementById('ui-cart-list');
+            if(itemsCart.length === 0) {
+                block.innerHTML = '<div class="empty-text">Внутри корзины ничего нет</div>';
+                document.getElementById('settlement-bar').style.display = 'none';
                 return;
             }
-            list.innerHTML = cart.map((item, index) => `
-                <div class="glass-card" style="display:flex; justify-content:space-between; align-items:center;">
+            block.innerHTML = itemsCart.map(item => `
+                <div class="glass-card" style="display:flex; justify-content:space-between; align-items:center; padding: 12px 16px;">
                     <div>${item.title}</div>
-                    <div style="font-weight:bold;">$${item.price}</div>
+                    <div style="font-weight:bold;">$${item.price.toFixed(2)}</div>
                 </div>
             `).join('');
             
-            let total = cart.reduce((sum, item) => sum + item.price, 0);
-            document.getElementById('total-price-lbl').innerText = `$${total.toFixed(2)}`;
+            let total = itemsCart.reduce((sum, item) => sum + item.price, 0);
+            document.getElementById('ui-total-price').innerText = `$${total.toFixed(2)}`;
         }
 
-        function setMethod(m) {
-            payMethod = m;
-            document.getElementById('p-stars').classList.toggle('selected', m === 'stars');
-            document.getElementById('p-crypto').classList.toggle('selected', m === 'cryptobot');
+        function changeMethod(method) {
+            methodChosen = method;
+            document.getElementById('m-stars').classList.toggle('selected', method === 'stars');
+            document.getElementById('m-crypto').classList.toggle('selected', method === 'cryptobot');
         }
 
-        async function payNow() {
-            let total = cart.reduce((sum, item) => sum + item.price, 0);
-            const res = await fetch('/api/order', {
+        async function sendInvoice() {
+            let total = itemsCart.reduce((sum, item) => sum + item.price, 0);
+            const response = await fetch('/api/order', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ user_id: userId, total_amount: total, method: payMethod })
+                body: JSON.stringify({ user_id: uid, total_amount: total, method: methodChosen })
             });
-            if(res.ok) {
-                tg.showPopup({ title: "Успешно", message: `Счет оформлен через ${payMethod}. Оплатите его в боте.` });
-                cart = [];
-                updateCartUI();
-                document.getElementById('cart-badge').style.display = 'none';
-                loadUserData();
+            if(response.ok) {
+                tg.showPopup({ title: "Счет выставлен", message: `Оплата зарегистрирована. Ожидайте подтверждения в боте через ${methodChosen}.` });
+                itemsCart = [];
+                renderCart();
+                document.getElementById('cart-counter').style.display = 'none';
+                fetchUserAccount();
             }
         }
 
-        function copyRefLink() {
-            let link = `https://t.me/cryptoxrm_bot?start=ref${userId}`;
-            navigator.clipboard.writeText(link);
-            tg.showPopup({ message: "Ссылка скопирована!" });
+        function copyInviteLink() {
+            let inviteUrl = `https://t.me/cryptoxrm_bot?start=ref${uid}`;
+            navigator.clipboard.writeText(inviteUrl);
+            tg.showPopup({ message: "Реферальная ссылка успешно скопирована!" });
         }
     </script>
 </body>
